@@ -6,7 +6,6 @@ import {
   Button,
   Card,
   CardContent,
-  Chip,
   CircularProgress,
   Divider,
   List,
@@ -28,9 +27,17 @@ interface AbsenceItem {
 interface AbsenceProps {
   token: string;
   hasAccess: boolean;
+  isManager: boolean;
 }
 
-export default function Absence({token, hasAccess}: AbsenceProps) {
+const statusCycle = {
+  'PENDING': 'APPROVED',
+  'APPROVED': 'REJECTED',
+  'REJECTED': 'PENDING',
+};
+
+
+export default function Absence({token, hasAccess, isManager}: AbsenceProps) {
   const [absenceList, setAbsenceList] = useState<AbsenceItem[]>([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -38,6 +45,12 @@ export default function Absence({token, hasAccess}: AbsenceProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [submitError, setSubmitError] = useState("");
+
+  // Fetch data when the component mounts
+  useEffect(() => {
+    fetchAbsences();
+  }, [token]);
+
 
   // Fetch the user's absences, set state, handle errors and loading
   async function fetchAbsences() {
@@ -54,10 +67,17 @@ export default function Absence({token, hasAccess}: AbsenceProps) {
     }
   }
 
-  // Fetch data when the component mounts
-  useEffect(() => {
-    fetchAbsences();
-  }, [token]);
+  async function handleStatusUpdate(absenceId: number, currentStatus: AbsenceItem['status']) {
+    const nextStatus = statusCycle[currentStatus];
+    try {
+      await axios.patch(`http://localhost:8000/api/v1/absences/${absenceId}/`, {status: nextStatus}, {
+        headers: {Authorization: `Bearer ${token}`},
+      });
+      fetchAbsences(); // Refresh the list to show the new status
+    } catch (err) {
+      console.error("Failed to update status", err);
+    }
+  }
 
   // Handler for submitting a new absence request
   async function handleSubmit(event: FormEvent) {
@@ -79,10 +99,10 @@ export default function Absence({token, hasAccess}: AbsenceProps) {
       setSubmitError("Failed to submit request. Please check the dates and reason.");
       console.error("Submit absence error:", err);
     }
-  };
+  }
 
   // Helper to determine the color of the status chip
-  const getStatusChipColor = (status: AbsenceItem["status"]) => {
+  function getStatusChipColor(status: AbsenceItem["status"]) {
     switch (status) {
       case "APPROVED":
         return "success";
@@ -91,7 +111,7 @@ export default function Absence({token, hasAccess}: AbsenceProps) {
       default:
         return "warning";
     }
-  };
+  }
 
   return (
       <Card sx={{display: 'flex', flexDirection: 'column', height: '100%'}}>
@@ -100,7 +120,7 @@ export default function Absence({token, hasAccess}: AbsenceProps) {
             Absence Requests
           </Typography>
 
-          {/* Form for new request */}
+          {/* Form for new request if hasAccess*/}
           {hasAccess && (
               <Box component="form" onSubmit={handleSubmit} sx={{mb: 3}}>
                 <Typography variant="h6" sx={{mb: 2}}>Request New
@@ -143,7 +163,6 @@ export default function Absence({token, hasAccess}: AbsenceProps) {
               </Box>
           )}
 
-
           <Divider sx={{my: 2}}/>
 
           {/* List of past absences */}
@@ -161,9 +180,17 @@ export default function Absence({token, hasAccess}: AbsenceProps) {
                               primary={item.reason}
                               secondary={`From: ${item.start_date} To: ${item.end_date}`}
                           />
-                          <Chip label={item.status}
-                                color={getStatusChipColor(item.status)}
-                                size="small"/>
+                          {/* --- Status Button --- */}
+                          <Button
+                              variant="contained"
+                              size="small"
+                              color={getStatusChipColor(item.status)}
+                              // Only managers can click the button
+                              disabled={!isManager}
+                              onClick={() => handleStatusUpdate(item.id, item.status)}
+                          >
+                            {item.status}
+                          </Button>
                         </ListItem>
                     ))
                 ) : (
