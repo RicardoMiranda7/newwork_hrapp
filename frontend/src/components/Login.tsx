@@ -1,10 +1,16 @@
 import React, {useState} from 'react';
 import axios from 'axios';
 import {Box, Button, Container, TextField, Typography} from '@mui/material';
+import { jwtDecode } from 'jwt-decode';
+
+interface DecodedToken {
+  user_id: number;
+}
 
 interface LoginProps {
   onLoginSuccess: (token: string, email: string) => void;
 }
+
 
 export default function Login({onLoginSuccess}: LoginProps) {
   const [email, setEmail] = useState('');
@@ -18,9 +24,19 @@ export default function Login({onLoginSuccess}: LoginProps) {
         email,
         password,
       });
+
       // On successful login, store the token and update the app state
       const accessToken = response.data.access;
       localStorage.setItem('authToken', accessToken);
+
+      // Extract user ID from token and store in localStorage
+      try {
+        const decodedToken: DecodedToken = jwtDecode(accessToken);
+        localStorage.setItem("userId", String(decodedToken.user_id));
+      } catch (error) {
+        console.error("Failed to decode token on login", error);
+      }
+
       onLoginSuccess(accessToken, email);
     } catch (err) {
       setError('Login failed. Please check your credentials.');

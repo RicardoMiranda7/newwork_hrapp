@@ -20,6 +20,7 @@ function App() {
   function handleLogout() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userEmail');
+    localStorage.removeItem('userId');
     setToken(null);
     setUserEmail(null);
   }
@@ -31,7 +32,15 @@ function App() {
             // If logged in, show the TopBar and Profile page
             <>
               <TopBar email={userEmail} onLogout={handleLogout}/>
-              <Box marginTop={10} marginBottom={10}>
+              <Box
+                  component="main"
+                  sx={{
+                    pt: '64px',
+                    px: 2,
+                    width: '100%',
+                    minHeight: '100vh',
+                  }}
+              >
                 <Profile token={token}/>
               </Box>
             </>

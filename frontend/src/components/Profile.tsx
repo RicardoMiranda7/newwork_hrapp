@@ -6,24 +6,22 @@ import {
   Card,
   CardContent,
   CircularProgress,
-  Container,
   Grid,
   Typography
 } from '@mui/material';
 import Feedback from "./Feedback.tsx";
 
-// Define the props interface, expecting the auth token
 interface ProfileProps {
   token: string;
 }
 
-// Define a flexible interface for the profile data
 interface ProfileData {
   [key: string]: any;
 }
 
 export default function Profile({token}: ProfileProps) {
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [userId] = useState<string | null>(localStorage.getItem("userId"));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -50,22 +48,28 @@ export default function Profile({token}: ProfileProps) {
   }, [token]);
 
   if (loading) {
-    return <CircularProgress/>;
+    return <Box width="100%"> <CircularProgress/></Box>;
   }
 
   if (error) {
     return <Alert severity="error">{error}</Alert>;
   }
 
+  function isManagerOrOwner(): boolean{
+    if (!profile || !userId){
+      return false;
+    }
+    return profile.user?.toString() === userId || profile.manager === userId;
+  }
+
   return (
-      <Container maxWidth="lg">
-        <Box sx={{my: 4}}>
+        <Box sx={{py: 4, px:3}}>
           <Typography variant="h4" component="h1" gutterBottom>
             Employee Profile
           </Typography>
           {profile && (
               <Grid container spacing={3} sx={{alignItems: "flex-start"}}>
-                <Grid size={{xs: 12, md: 6}}>
+                <Grid size={{xs: 12, md: 4}}>
                   <Card>
                     <CardContent>
                       <Typography variant="h5" gutterBottom>
@@ -80,12 +84,12 @@ export default function Profile({token}: ProfileProps) {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid size={{xs: 12, md: 6}}>
-                  <Feedback profileId={profile.id} token={token}/>
+                <Grid size={{xs: 12, md: 4}}>
+                  {/*For demo, always check profile 1*/}
+                  <Feedback profileId={profile.id || 1} token={token}/>
                 </Grid>
               </Grid>
           )}
         </Box>
-      </Container>
   );
 }
