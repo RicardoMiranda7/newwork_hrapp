@@ -1,5 +1,4 @@
 import {type FormEvent, useEffect, useState} from 'react';
-import axios from 'axios';
 import {
   Alert,
   Box,
@@ -14,6 +13,7 @@ import {
   TextField,
   Typography
 } from '@mui/material';
+import apiClient from "../utils/apiClient.ts";
 
 interface FeedbackItem {
   id: number;
@@ -53,11 +53,7 @@ export default function Feedback({profileId, token}: FeedbackProps) {
       setLoading(true);
       setError('');
 
-      const response = await axios.get(`http://localhost:8000/api/v1/feedback/?profile=${profileId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await apiClient.get(`/api/v1/feedback/?profile=${profileId}`);
       setFeedbackList(response.data);
     } catch (err) {
       setError('Could not load feedback.');
@@ -68,23 +64,17 @@ export default function Feedback({profileId, token}: FeedbackProps) {
   }
 
   // Handler for submitting new feedback
-  const handleSubmit = async (event: FormEvent) => {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (!newFeedback.trim()) return; // Prevent submitting empty feedback
 
     try {
-      await axios.post(
-          'http://localhost:8000/api/v1/feedback/',
+      await apiClient.post(
+          '/api/v1/feedback/',
           {
             text: newFeedback,
             profile: profileId,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          }
       );
       setNewFeedback('');
       await fetchFeedback(); // Refresh the list to show the new feedback
@@ -92,7 +82,7 @@ export default function Feedback({profileId, token}: FeedbackProps) {
       setError('Failed to submit feedback.');
       console.error('Submit feedback error:', err);
     }
-  };
+  }
 
   return (
       <Card sx={{display: 'flex', flexDirection: 'column', height: '100%'}}>

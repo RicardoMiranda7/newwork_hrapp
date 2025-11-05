@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {type FormEvent, useState} from 'react';
 import axios from 'axios';
 import {Box, Button, TextField, Typography} from '@mui/material';
 import {jwtDecode} from 'jwt-decode';
@@ -20,7 +20,7 @@ export default function Login({onLoginSuccess}: LoginProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     try {
       const response = await axios.post('http://localhost:8000/api/v1/token/', {

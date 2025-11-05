@@ -1,5 +1,4 @@
 import {type FormEvent, useEffect, useState} from 'react';
-import axios from 'axios';
 import {
   Alert,
   Box,
@@ -14,6 +13,7 @@ import {
   TextField,
   Typography
 } from '@mui/material';
+import apiClient from "../utils/apiClient.ts";
 
 interface AbsenceItem {
   id: number;
@@ -55,9 +55,7 @@ export default function Absence({token, hasAccess, isManager}: AbsenceProps) {
   // Fetch the user's absences, set state, handle errors and loading
   async function fetchAbsences() {
     try {
-      const response = await axios.get("http://localhost:8000/api/v1/absences/", {
-        headers: {Authorization: `Bearer ${token}`},
-      });
+      const response = await apiClient.get("http://localhost:8000/api/v1/absences/");
       setAbsenceList(response.data);
     } catch (err) {
       setError("Could not load absence history.");
@@ -70,9 +68,7 @@ export default function Absence({token, hasAccess, isManager}: AbsenceProps) {
   async function handleStatusUpdate(absenceId: number, currentStatus: AbsenceItem['status']) {
     const nextStatus = statusCycle[currentStatus];
     try {
-      await axios.patch(`http://localhost:8000/api/v1/absences/${absenceId}/`, {status: nextStatus}, {
-        headers: {Authorization: `Bearer ${token}`},
-      });
+      await apiClient.patch(`/api/v1/absences/${absenceId}/`, {status: nextStatus});
       fetchAbsences(); // Refresh the list to show the new status
     } catch (err) {
       console.error("Failed to update status", err);
@@ -85,10 +81,9 @@ export default function Absence({token, hasAccess, isManager}: AbsenceProps) {
     setSubmitError(""); // Clear previous errors
 
     try {
-      await axios.post(
-          "http://localhost:8000/api/v1/absences/",
+      await apiClient.post(
+          "/api/v1/absences/",
           {start_date: startDate, end_date: endDate, reason},
-          {headers: {Authorization: `Bearer ${token}`}}
       );
       // Clear form and refresh the list
       setStartDate("");

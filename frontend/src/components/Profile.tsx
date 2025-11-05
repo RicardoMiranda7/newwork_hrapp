@@ -1,5 +1,4 @@
 import {type ChangeEvent, useEffect, useState} from 'react';
-import axios from 'axios';
 import {
   Alert,
   Box,
@@ -16,6 +15,7 @@ import Feedback from "./Feedback.tsx";
 import Absence from "./Absence.tsx";
 import {isManager, isManagerOrOwner} from "../utils/access.ts";
 import {toast} from "sonner";
+import apiClient from "../utils/apiClient.ts";
 
 interface ProfileProps {
   token: string;
@@ -39,11 +39,7 @@ export default function Profile({token}: ProfileProps) {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/v1/profiles/1/', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await apiClient.get('/api/v1/profiles/1/', {});
         setProfile(response.data);
       } catch (err) {
         setError('Failed to fetch profile data.');
@@ -74,9 +70,7 @@ export default function Profile({token}: ProfileProps) {
   async function handleSubmitClick() {
     if (!editableProfile || !profile) return;
     try {
-      const response = await axios.put(`http://localhost:8000/api/v1/profiles/${profile.id}/`, editableProfile, {
-        headers: {Authorization: `Bearer ${token}`},
-      });
+      const response = await apiClient.put(`/api/v1/profiles/${profile.id}/`, editableProfile);
       setProfile(response.data); // Update the main profile state with the new data
       setIsEditing(false);
 
