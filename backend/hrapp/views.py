@@ -51,12 +51,11 @@ class FeedbackViewSet(mixins.ListModelMixin,
 
 
 class AbsenceRequestViewSet(viewsets.ModelViewSet):
-    queryset = AbsenceRequest.objects.all()
+    queryset = AbsenceRequest.objects.all().order_by('-start_date')
     serializer_class = AbsenceRequestSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Check if user is manager/owner instead of role
         user = self.request.user
         if not any(IsManagerOrOwner().has_object_permission(self.request, self,
                                                             obj)

@@ -19,11 +19,12 @@ class ProfileCoWorkerSerializer(serializers.ModelSerializer):
     """
     Serializer for co-workers, hiding sensitive data like salary.
     """
+    id = serializers.IntegerField(source='pk', read_only=True)
 
     class Meta:
         model = Profile
         exclude = ['salary', 'gender', 'date_of_birth', 'address',
-                   'phone_number', 'user', 'manager', 'id']  # Exclude sensitive fields
+                   'phone_number', 'user', 'manager']  # Exclude sensitive fields
 
 
 class FeedbackSerializer(serializers.ModelSerializer):
@@ -36,6 +37,9 @@ class FeedbackSerializer(serializers.ModelSerializer):
 
 
 class AbsenceRequestSerializer(serializers.ModelSerializer):
+    # Set employee to be read-only as it is set automatically in the view.
+    employee = serializers.StringRelatedField(read_only=True)
+
     class Meta:
         model = AbsenceRequest
         fields = '__all__'

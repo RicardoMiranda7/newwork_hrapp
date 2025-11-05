@@ -1,5 +1,8 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
+from hrapp.models import AbsenceRequest, Feedback
+
+
 class IsManagerOrOwner(BasePermission):
     """
     Custom permission to only allow managers or owners of an object to edit it.
@@ -7,6 +10,10 @@ class IsManagerOrOwner(BasePermission):
     """
     def has_object_permission(self, request, view, obj):
         # Write permissions are only granted to the manager or the owner.
+        if isinstance(obj, AbsenceRequest):
+            return obj.employee == request.user or obj.employee.profile.manager == request.user
+        elif isinstance(obj, Feedback):
+            return obj.profile.user == request.user or obj.profile.manager == request.user
         return obj.user == request.user or obj.manager == request.user
 
 class IsCoWorker(BasePermission):
