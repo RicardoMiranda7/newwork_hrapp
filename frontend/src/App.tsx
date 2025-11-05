@@ -3,6 +3,7 @@ import Login from './components/Login';
 import Profile from './components/Profile';
 import {Box, CssBaseline} from '@mui/material';
 import TopBar from "./components/TopBar.tsx";
+import {Toaster} from "sonner";
 
 function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem('authToken'));
@@ -28,6 +29,7 @@ function App() {
   return (
       <>
         <CssBaseline/>
+        <Toaster theme={"system"} richColors/>
         {token && userEmail ? (
             // If logged in, show the TopBar and Profile page
             <>

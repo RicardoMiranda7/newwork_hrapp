@@ -3,6 +3,8 @@ import axios from 'axios';
 import {Box, Button, TextField, Typography} from '@mui/material';
 import {jwtDecode} from 'jwt-decode';
 import LogInContainer from "./LogInContainer.tsx";
+import { toast } from "sonner";
+
 
 interface DecodedToken {
   user_id: number;
@@ -39,6 +41,7 @@ export default function Login({onLoginSuccess}: LoginProps) {
       }
 
       onLoginSuccess(accessToken, email);
+      toast.success("Login successful");
     } catch (err) {
       setError('Login failed. Please check your credentials.');
       console.error('Login error:', err);

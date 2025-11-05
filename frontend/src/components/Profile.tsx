@@ -15,6 +15,7 @@ import {
 import Feedback from "./Feedback.tsx";
 import Absence from "./Absence.tsx";
 import {isManager, isManagerOrOwner} from "../utils/access.ts";
+import {toast} from "sonner";
 
 interface ProfileProps {
   token: string;
@@ -79,8 +80,11 @@ export default function Profile({token}: ProfileProps) {
       setProfile(response.data); // Update the main profile state with the new data
       setIsEditing(false);
 
+      toast.success("Profile edited successfully");
+
     } catch (err) {
       console.error("Failed to update profile", err);
+      toast.error("Failed to update profile");
       setError("Failed to save changes.");
       setEditableProfile(null);
       setIsEditing(false);
