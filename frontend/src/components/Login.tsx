@@ -1,9 +1,9 @@
 import {type FormEvent, useState} from 'react';
-import axios from 'axios';
 import {Box, Button, TextField, Typography} from '@mui/material';
 import {jwtDecode} from 'jwt-decode';
 import LogInContainer from "./LogInContainer.tsx";
-import { toast } from "sonner";
+import {toast} from "sonner";
+import apiClient from "../utils/apiClient.ts";
 
 
 interface DecodedToken {
@@ -23,7 +23,7 @@ export default function Login({onLoginSuccess}: LoginProps) {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8000/api/v1/token/', {
+      const response = await apiClient.post('/api/v1/token/', {
         email,
         password,
       });
@@ -51,7 +51,7 @@ export default function Login({onLoginSuccess}: LoginProps) {
   return (
       <LogInContainer animation={"slide"}>
         <Box sx={{
-          marginTop: 8,
+          marginTop: 4,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center'

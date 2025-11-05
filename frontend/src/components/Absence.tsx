@@ -55,7 +55,7 @@ export default function Absence({token, hasAccess, isManager}: AbsenceProps) {
   // Fetch the user's absences, set state, handle errors and loading
   async function fetchAbsences() {
     try {
-      const response = await apiClient.get("http://localhost:8000/api/v1/absences/");
+      const response = await apiClient.get("/api/v1/absences/");
       setAbsenceList(response.data);
     } catch (err) {
       setError("Could not load absence history.");
