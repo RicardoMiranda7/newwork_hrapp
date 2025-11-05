@@ -9,13 +9,19 @@ services:
       - POSTGRES_DB=newwork_db
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
-
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile.prod
     ports:
-      - "80:80" # Map host port 80 to Nginx port 80 in the container
+      - "5432:5432"
+
+  backend:
+    build: ./backend
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py createsuperuser --noinput &&
+             python manage.py generate_demo"
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
     depends_on:
       - db
     environment:
@@ -23,7 +29,7 @@ services:
       - DB_USER=user
       - DB_PASSWORD=password
       - DB_HOST=db
-      # Superuser credentials for the first run
+      # Superuser credentials for local dev
       - DJANGO_SUPERUSER_USERNAME=admin
       - DJANGO_SUPERUSER_EMAIL=admin@example.com
       - DJANGO_SUPERUSER_PASSWORD=password
