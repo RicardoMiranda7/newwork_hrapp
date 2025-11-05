@@ -10,6 +10,7 @@ import {
   Typography
 } from '@mui/material';
 import Feedback from "./Feedback.tsx";
+import Absence from "./Absence.tsx";
 
 interface ProfileProps {
   token: string;
@@ -87,6 +88,9 @@ export default function Profile({token}: ProfileProps) {
                 <Grid size={{xs: 12, md: 4}}>
                   {/*For demo, always check profile 1*/}
                   <Feedback profileId={profile.id || 1} token={token}/>
+                </Grid>
+                <Grid size={{xs: 12, md: 4}}>
+                  <Absence token={token} hasAccess={isManagerOrOwner()}/>
                 </Grid>
               </Grid>
           )}
