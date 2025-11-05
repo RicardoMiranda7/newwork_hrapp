@@ -188,6 +188,13 @@ export default function Absence({token, hasAccess, isManager}: AbsenceProps) {
                               // Only managers can click the button
                               disabled={!isManager}
                               onClick={() => handleStatusUpdate(item.id, item.status)}
+                              sx={{
+                                '&.Mui-disabled': {
+                                  backgroundColor: (theme) => theme.palette[getStatusChipColor(item.status)].main,
+                                  color: (theme) => theme.palette[getStatusChipColor(item.status)].contrastText,
+                                  opacity: 1,
+                                },
+                              }}
                           >
                             {item.status}
                           </Button>
