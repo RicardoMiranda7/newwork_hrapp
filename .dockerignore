@@ -1,0 +1,27 @@
+# Git files
+.git
+.gitignore
+
+# IDE and OS files
+.idea/
+.vscode/
+*.pyc
+__pycache__/
+.DS_Store
+
+# Python virtual environment
+venv/
+*.venv
+
+# Node.js dependencies (these should be installed inside the container)
+node_modules/
+frontend/node_modules/
+
+# Frontend build artifacts (we want the container to create this fresh)
+frontend/dist/
+
+# Local environment files that should NEVER be in the production image
+.env
+backend/.env
+frontend/.env.development
+frontend/.env.local
