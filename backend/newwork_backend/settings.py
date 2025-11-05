@@ -39,12 +39,13 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     # 3rd Party Apps
-    'rest_framework',
-    'rest_framework_simplejwt',
-    'corsheaders',
+    "rest_framework",
+    "rest_framework_simplejwt",
+    "corsheaders",
+    "django_filters",
 
     # Local Apps
-    'hrapp.apps.HrappConfig',
+    "hrapp.apps.HrappConfig",
 ]
 
 MIDDLEWARE = [
@@ -60,8 +61,8 @@ MIDDLEWARE = [
 
 # For development, we'll allow the React default port.
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 ROOT_URLCONF = "newwork_backend.urls"

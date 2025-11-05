@@ -23,10 +23,13 @@ class ProfileCoWorkerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         exclude = ['salary', 'gender', 'date_of_birth', 'address',
-                   'phone_number']  # Exclude sensitive fields
+                   'phone_number', 'user', 'manager', 'id']  # Exclude sensitive fields
 
 
 class FeedbackSerializer(serializers.ModelSerializer):
+    # Set author to be read-only as it is set automatically in the view.
+    author = serializers.StringRelatedField(read_only=True)
+
     class Meta:
         model = Feedback
         fields = '__all__'

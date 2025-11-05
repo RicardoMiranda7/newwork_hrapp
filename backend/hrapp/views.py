@@ -1,4 +1,10 @@
-from rest_framework import viewsets, permissions
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status
+from rest_framework import viewsets, permissions, mixins
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 from .models import Profile, Feedback, AbsenceRequest
 from .permissions import IsManagerOrOwner, IsCoWorker
@@ -12,7 +18,8 @@ from .serializers import (
 
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all().filter()
-    permission_classes = [permissions.IsAuthenticated, IsManagerOrOwner | IsCoWorker]
+    permission_classes = [permissions.IsAuthenticated,
+                          IsManagerOrOwner | IsCoWorker]
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -21,17 +28,22 @@ class ProfileViewSet(viewsets.ModelViewSet):
         if self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
             # Use manager/owner check for specific profile
             obj = self.get_object()
-            if IsManagerOrOwner().has_object_permission(self.request, self, obj):
+            if IsManagerOrOwner().has_object_permission(self.request, self,
+                                                        obj):
                 return ProfileSerializer
             return ProfileCoWorkerSerializer
 
         return ProfileSerializer
 
 
-class FeedbackViewSet(viewsets.ModelViewSet):
-    queryset = Feedback.objects.all()
+class FeedbackViewSet(mixins.ListModelMixin,
+                      mixins.CreateModelMixin,
+                      viewsets.GenericViewSet):
+    queryset = Feedback.objects.all().order_by('-created_at')  # Sort newest
     serializer_class = FeedbackSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]  # Add the filter backend
+    filterset_fields = ['profile']  # Allow filtering on the 'profile' field
 
     def perform_create(self, serializer):
         # Automatically set the author to the current user
