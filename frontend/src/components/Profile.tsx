@@ -92,7 +92,24 @@ export default function Profile({token}: ProfileProps) {
   }
 
   if (loading) {
-    return <Box width="100%"> <CircularProgress/></Box>;
+    return (
+        <Box
+            sx={{
+              position: "fixed",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backdropFilter: "blur(6px)",
+              backgroundColor: "rgba(255, 255, 255, 0.3)",
+              zIndex: 1300,
+              opacity: 1,
+              transition: "opacity 0.3s ease",
+            }}
+        >
+          <CircularProgress size={64} thickness={5} />
+        </Box>
+    );
   }
 
   if (error) {
