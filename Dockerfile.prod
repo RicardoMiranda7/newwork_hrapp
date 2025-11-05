@@ -1,5 +1,5 @@
 # --- Stage 1: Build the React Frontend ---
-FROM node:20-alpine AS builder-frontend
+FROM node:22-alpine AS builder-frontend
 
 WORKDIR /app/frontend
 
@@ -12,42 +12,27 @@ COPY frontend/ ./
 # This creates a 'dist' folder with optimized static files
 RUN npm run build
 
-
-# --- Stage 2: Build the Python Backend ---
-FROM python:3.13-slim AS builder-backend
-
-WORKDIR /app
-
-# Install Python dependencies
-COPY backend/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the backend application code
-COPY backend/ ./
-
-
-# --- Stage 3: Final Production Image ---
+# --- Stage 2: Final Production Image ---
 FROM python:3.13-slim
 
 WORKDIR /app
 
-# Install Nginx and Gunicorn
-RUN apt-get update && apt-get install -y nginx
+# Install system dependencies
+RUN apt-get update && apt-get install -y nginx postgresql-client && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies (including gunicorn)
+COPY backend/requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install gunicorn
 
-# Copy Python dependencies from the backend builder stage
-COPY --from=builder-backend /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
+# Copy the backend application code
+COPY backend/ ./
 
-# Copy the backend application code from the backend builder stage
-COPY --from=builder-backend /app /app
-
-# Copy the BUILT frontend files from the frontend builder stage into the Nginx serve directory
+# Copy the BUILT frontend files from the frontend builder stage
 COPY --from=builder-frontend /app/frontend/dist /var/www/frontend
 
-# Copy the Nginx configuration file
+# Copy configurations and scripts
 COPY nginx.conf /etc/nginx/sites-available/default
-
-# Copy the entrypoint script that will start the services
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
