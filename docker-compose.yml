@@ -16,9 +16,8 @@ services:
     build: ./backend
     command: >
       sh -c "python manage.py migrate &&
-             python manage.py createsuperuser --noinput --username=my_user --email=my_user@domain.com &&
-             python manage.py generate_demo &&
-             python manage.py runserver 0.0.0:8000"
+             python manage.py createsuperuser --noinput &&
+             python manage.py generate_demo"
     volumes:
       - ./backend:/app
     ports:
@@ -30,6 +29,9 @@ services:
       - DB_USER=user
       - DB_PASSWORD=password
       - DB_HOST=db
+      - DJANGO_SUPERUSER_USERNAME=admin
+      - DJANGO_SUPERUSER_EMAIL=admin@example.com
+      - DJANGO_SUPERUSER_PASSWORD=password
 
 volumes:
   postgres_data:
