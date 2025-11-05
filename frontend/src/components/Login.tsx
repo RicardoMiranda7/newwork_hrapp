@@ -1,7 +1,8 @@
-import React, {useState} from 'react';
+import {useState} from 'react';
 import axios from 'axios';
-import {Box, Button, Container, TextField, Typography} from '@mui/material';
-import { jwtDecode } from 'jwt-decode';
+import {Box, Button, TextField, Typography} from '@mui/material';
+import {jwtDecode} from 'jwt-decode';
+import LogInContainer from "./LogInContainer.tsx";
 
 interface DecodedToken {
   user_id: number;
@@ -45,7 +46,7 @@ export default function Login({onLoginSuccess}: LoginProps) {
   };
 
   return (
-      <Container maxWidth="xs">
+      <LogInContainer animation={"slide"}>
         <Box sx={{
           marginTop: 8,
           display: 'flex',
@@ -95,6 +96,6 @@ export default function Login({onLoginSuccess}: LoginProps) {
             </Button>
           </Box>
         </Box>
-      </Container>
+      </LogInContainer>
   );
 }
