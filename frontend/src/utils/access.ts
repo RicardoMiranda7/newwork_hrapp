@@ -10,7 +10,7 @@ export function isManagerOrOwner(profile: ProfileData, userId: string): boolean 
 }
 
 export function isManager(profile: ProfileData, userId: string): boolean {
-  return profile.manager.toString() === userId;
+  return profile.manager?.toString() === userId;
 }
 
 export function isOwner(profile: ProfileData, userId: string): boolean {
