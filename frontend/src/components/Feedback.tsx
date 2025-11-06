@@ -11,9 +11,13 @@ import {
   ListItem,
   ListItemText,
   TextField,
+  Tooltip,
   Typography
 } from '@mui/material';
 import apiClient from "../utils/apiClient.ts";
+import {toast} from "sonner";
+import IconButton from "@mui/material/IconButton";
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 
 interface FeedbackItem {
   id: number;
@@ -31,7 +35,8 @@ interface FeedbackProps {
 export default function Feedback({profileId, token}: FeedbackProps) {
   const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([]);
   const [newFeedback, setNewFeedback] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPolishing, setIsPolishing] = useState(false);
   const [error, setError] = useState('');
 
   // Fetch feedback when the component mounts or profileId changes
@@ -45,12 +50,12 @@ export default function Feedback({profileId, token}: FeedbackProps) {
   async function fetchFeedback() {
     if (!profileId) {
       setFeedbackList([]);
-      setLoading(false);
+      setIsLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
+      setIsLoading(true);
       setError('');
 
       const response = await apiClient.get(`/api/v1/feedback/?profile=${profileId}`);
@@ -59,7 +64,27 @@ export default function Feedback({profileId, token}: FeedbackProps) {
       setError('Could not load feedback.');
       console.error('Fetch feedback error:', err);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
+    }
+  }
+
+  // Handler for polishing feedback using AI
+  async function handlePolishClick() {
+    if (!newFeedback.trim()) {
+      toast.info("Please write some feedback before polishing.");
+      return;
+    }
+
+    setIsPolishing(true);
+    try {
+      const response = await apiClient.post('/api/v1/feedback/polish/', {text: newFeedback});
+      setNewFeedback(response.data.polished_text);
+      toast.success("Feedback polished with AI!");
+    } catch (err) {
+      console.error("Failed to polish feedback", err);
+      toast.error("AI polisher is currently unavailable.");
+    } finally {
+      setIsPolishing(false);
     }
   }
 
@@ -101,20 +126,40 @@ export default function Feedback({profileId, token}: FeedbackProps) {
                 variant="outlined"
                 value={newFeedback}
                 onChange={(e) => setNewFeedback(e.target.value)}
+                disabled={isPolishing}
             />
-            <Button
-                type="submit"
-                variant="contained"
-                sx={{mt: 1}}
-            >
-              Submit Feedback
-            </Button>
+            {/* --- Request AI polish / submit Feedback action buttons --- */}
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mt: 1
+            }}>
+              <Tooltip title="Polish with AI">
+                {/* Disable button while polishing */}
+                <span>
+                <IconButton onClick={handlePolishClick}
+                            disabled={isPolishing || !newFeedback.trim()}>
+                  {/* Show a spinner when polishing */}
+                  {isPolishing ? <CircularProgress size={24}/> :
+                      <AutoFixHighIcon/>}
+                </IconButton>
+              </span>
+              </Tooltip>
+              <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={isPolishing}
+              >
+                Submit Feedback
+              </Button>
+            </Box>
           </Box>
 
           <Divider sx={{my: 2}}/>
 
           {/* Display feedback list */}
-          {loading ? (
+          {isLoading ? (
               <CircularProgress sx={{mx: 'auto', my: 2}}/>
           ) : error ? (
               <Alert severity="error">{error}</Alert>
@@ -141,5 +186,6 @@ export default function Feedback({profileId, token}: FeedbackProps) {
           )}
         </CardContent>
       </Card>
-  );
+  )
+      ;
 }
