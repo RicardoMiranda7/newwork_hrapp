@@ -33,10 +33,18 @@ The application is fully containerized with Docker for consistent and reliable d
         ```
 3. **Default Logins**
 
-    The application is seeded with demo data. You can log in with:
-   - Manager: manager@example.com / password123 
+   The application is seeded with demo data. You can log in with:
+   - Manager: manager@example.com / password123
    - Employee: john.smith@example.com / password123 
    - Co-worker: john.doe@example.com / password123
+
+4. **API Documentation**
+   - Once the backend is running, access the API documentation at:
+     ```html
+     http://localhost/api/schema/swagger-ui/
+     or
+     http://localhost:8000/api/schema/swagger-ui/ (if running backend separately)
+     ```
 ---
 
 ## Running the Application
