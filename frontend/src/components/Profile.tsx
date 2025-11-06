@@ -16,6 +16,7 @@ import Absence from "./Absence.tsx";
 import {isManager, isManagerOrOwner} from "../utils/access.ts";
 import {toast} from "sonner";
 import apiClient from "../utils/apiClient.ts";
+import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 
 interface ProfileProps {
   token: string;
@@ -166,9 +167,13 @@ export default function Profile({token}: ProfileProps) {
                   <CardContent>
                     <Stack direction="row" justifyContent="space-between"
                            alignItems="center">
-                      <Typography variant="h5" gutterBottom>
-                        Details
-                      </Typography>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <AccountCircleOutlinedIcon color="action" />
+                        <Typography variant="h5" sx={{pt:0.8}}>
+                          Details
+                        </Typography>
+                      </Stack>
+
                       {/* --- Edit/Submit/Cancel Buttons --- */}
                       {renderEditActions()}
                     </Stack>

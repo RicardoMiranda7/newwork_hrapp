@@ -9,7 +9,7 @@ import {
   Divider,
   List,
   ListItem,
-  ListItemText,
+  ListItemText, Stack,
   TextField,
   Tooltip,
   Typography
@@ -18,6 +18,7 @@ import apiClient from "../utils/apiClient.ts";
 import {toast} from "sonner";
 import IconButton from "@mui/material/IconButton";
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 
 interface FeedbackItem {
   id: number;
@@ -112,9 +113,12 @@ export default function Feedback({profileId, token}: FeedbackProps) {
   return (
       <Card sx={{display: 'flex', flexDirection: 'column', height: '100%'}}>
         <CardContent>
-          <Typography variant="h5" gutterBottom>
-            Feedback
-          </Typography>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+            <ChatBubbleOutlineIcon color="action" />
+            <Typography variant="h5" sx={{ pt: 0.8 }}>
+              Feedback
+            </Typography>
+          </Stack>
 
           {/* Form for submitting new feedback */}
           <Box component="form" onSubmit={handleSubmit} sx={{mb: 3}}>
@@ -128,6 +132,7 @@ export default function Feedback({profileId, token}: FeedbackProps) {
                 onChange={(e) => setNewFeedback(e.target.value)}
                 disabled={isPolishing}
             />
+
             {/* --- Request AI polish / submit Feedback action buttons --- */}
             <Box sx={{
               display: 'flex',
@@ -179,8 +184,11 @@ export default function Feedback({profileId, token}: FeedbackProps) {
                         </ListItem>
                     ))
                 ) : (
-                    <Typography>No feedback has been submitted for this profile
-                      yet.</Typography>
+                    <Box sx={{ textAlign: 'center', py: 4 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        No feedback has been submitted for this profile yet.
+                      </Typography>
+                    </Box>
                 )}
               </List>
           )}

@@ -23,7 +23,7 @@ export default function TopBar({ email, onLogout }:TopBarProps) {
             >
             </IconButton>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              NewWork HR | Logged in as: {email}
+              NEWWORK HR | Logged in as: {email}
             </Typography>
             <Button variant="contained" color="error" onClick={onLogout} >Logout</Button>
           </Toolbar>

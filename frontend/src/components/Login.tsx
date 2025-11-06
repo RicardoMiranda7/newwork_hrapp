@@ -1,10 +1,10 @@
 import {type FormEvent, useState} from 'react';
-import {Box, Button, TextField, Typography} from '@mui/material';
+import {Avatar, Box, Button, TextField, Typography} from '@mui/material';
 import {jwtDecode} from 'jwt-decode';
 import LogInContainer from "./LogInContainer.tsx";
 import {toast} from "sonner";
 import apiClient from "../utils/apiClient.ts";
-
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
 interface DecodedToken {
   user_id: number;
@@ -51,14 +51,18 @@ export default function Login({onLoginSuccess}: LoginProps) {
   return (
       <LogInContainer animation={"slide"}>
         <Box sx={{
-          marginTop: 4,
+          marginTop: 2,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center'
         }}>
+          <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+            <LockOutlinedIcon />
+          </Avatar>
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
+          {/* Login form with email, password and submit button */}
           <Box component="form" onSubmit={handleSubmit} sx={{mt: 1}}>
             <TextField
                 margin="normal"

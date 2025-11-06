@@ -10,10 +10,13 @@ import {
   List,
   ListItem,
   ListItemText,
+  Stack,
   TextField,
   Typography
 } from '@mui/material';
 import apiClient from "../utils/apiClient.ts";
+import CalendarMonthOutlinedIcon
+  from '@mui/icons-material/CalendarMonthOutlined';
 
 interface AbsenceItem {
   id: number;
@@ -111,15 +114,16 @@ export default function Absence({token, hasAccess, isManager}: AbsenceProps) {
   return (
       <Card sx={{display: 'flex', flexDirection: 'column', height: '100%'}}>
         <CardContent>
-          <Typography variant="h5" gutterBottom>
-            Absence Requests
-          </Typography>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{mb: 2}}>
+            <CalendarMonthOutlinedIcon color="action"/>
+            <Typography variant="h5" sx={{pt: 0.8}}>
+              Absences
+            </Typography>
+          </Stack>
 
           {/* Form for new request if hasAccess*/}
           {hasAccess && (
               <Box component="form" onSubmit={handleSubmit} sx={{mb: 3}}>
-                <Typography variant="h6" sx={{mb: 2}}>Request New
-                  Absence</Typography>
                 <Box sx={{display: 'flex', gap: 2, mb: 2}}>
                   <TextField
                       label="Start Date"
@@ -152,9 +156,12 @@ export default function Absence({token, hasAccess, isManager}: AbsenceProps) {
                 />
                 {submitError &&
                     <Alert severity="error" sx={{mt: 2}}>{submitError}</Alert>}
-                <Button type="submit" variant="contained" sx={{mt: 2}}>
-                  Submit Request
-                </Button>
+
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                  <Button type="submit" variant="contained">
+                    Request Absence
+                  </Button>
+                </Box>
               </Box>
           )}
 

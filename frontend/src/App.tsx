@@ -1,9 +1,10 @@
 import {useState} from 'react';
 import Login from './components/Login';
 import Profile from './components/Profile';
-import {Box, CssBaseline} from '@mui/material';
+import {Box, CssBaseline, ThemeProvider} from '@mui/material';
 import TopBar from "./components/TopBar.tsx";
 import {Toaster} from "sonner";
+import theme from "./utils/theme.ts";
 
 function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem('authToken'));
@@ -27,7 +28,7 @@ function App() {
   }
 
   return (
-      <>
+      <ThemeProvider theme={theme}>
         <CssBaseline/>
         <Toaster theme={"system"} richColors/>
         {token && userEmail ? (
@@ -50,7 +51,7 @@ function App() {
             // If not logged in, show the Login page
             <Login onLoginSuccess={handleLoginSuccess}/>
         )}
-      </>
+      </ThemeProvider>
   );
 }
 
