@@ -39,6 +39,7 @@ The application is fully containerized with Docker for consistent and reliable d
    - Co-worker: john.doe@example.com / password123
 
 4. **API Documentation**
+   - A Postman collection is available in the `docs/` directory for testing the API endpoints.
    - Once the backend is running, access the API documentation at:
      ```html
      http://localhost/api/schema/swagger-ui/
