@@ -4,6 +4,17 @@ A modern, single-page HR application built with a React frontend and a Django ba
 
 The application is fully containerized with Docker for consistent and reliable deployments.
 
+### Considerations
+- This project is architected as decoupled Single Page Application using React (TS) and a Django REST API backend. This separation allows for independent development and scaling of the frontend and backend services.
+- For the purposes of this demo, only one profile is viewed and edited in the frontend. Thus, some hardcoded values or IDs can be expected.
+- The API implementation in Python leverages Django REST Framework, and it's viewSet/model to accelerate endpoint implementation.
+- User authentication is handled via Django's built-in authentication system with token-based authentication, JWT, for API access (TokenPair).  Token refresh is implemented, but not fully integrated into the frontend for simplicity.
+- Sensitive data and readonly fields are managed with Serializer instead of custom validators and more custom role-based permissions.
+- The frontend uses React Context for state management (thus no global state management), avoiding more complex libraries like Redux for simplicity. Local storage is also used for simplicity.
+- For deployment, the application is fully containerized using a multi-stage Docker build, ensuring a consistent environment.
+- Future quick improvements could include adding unit and integration tests, enhancing error handling, and implementing more robust and persistent logging.
+- Other quick improvements would be to have a profile navigator (or profile search page), more CRUD operations over Feedback and Absence requests, and others.
+
 ### Tech Stack
 - Frontend: React 19, TypeScript, Vite, Material-UI 
 - Backend: Python 3.13, Django 5+, Django REST Framework 
