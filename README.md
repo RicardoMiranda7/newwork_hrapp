@@ -31,7 +31,14 @@ The application is fully containerized with Docker for consistent and reliable d
         DB_HOST=localhost
         HUGGING_FACE_API_KEY=API_KEY_HERE
         ```
+3. **Default Logins**
+
+    The application is seeded with demo data. You can log in with:
+   - Manager: manager@example.com / password123 
+   - Employee: john.smith@example.com / password123 
+   - Co-worker: john.doe@example.com / password123
 ---
+
 ## Running the Application
 ### Production Environment (Unified Build)
 1. **Update Production Environment Variables**
@@ -60,13 +67,7 @@ The application is fully containerized with Docker for consistent and reliable d
       ```bash
       docker-compose down
       ```
-5. **Default Logins**
-
-    The application is seeded with demo data. You can log in with:
-   - Manager: manager@example.com / password123 
-   - Employee: john.smith@example.com / password123 
-   - Co-worker: john.doe@example.com / password123
-
+---
 
 ### Development Environment (Services Run in IDEs)
 1. **Start the db, run migrations and seed demo data**
