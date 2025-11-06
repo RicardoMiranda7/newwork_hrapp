@@ -10,10 +10,11 @@ function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem('authToken'));
   const [userEmail, setUserEmail] = useState<string | null>(localStorage.getItem('userEmail'));
 
-  // This function is called on successful login
-  function handleLoginSuccess(newToken: string, email: string) {
+  // This function is called on successful login to store auth data
+  function handleLoginSuccess(newToken: string, email: string, userId: string) {
     localStorage.setItem('authToken', newToken);
     localStorage.setItem('userEmail', email);
+    localStorage.setItem("userId", userId);
     setToken(newToken);
     setUserEmail(email);
   }

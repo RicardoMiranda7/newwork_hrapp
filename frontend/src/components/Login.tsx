@@ -11,10 +11,15 @@ interface DecodedToken {
 }
 
 interface LoginProps {
-  onLoginSuccess: (token: string, email: string) => void;
+  onLoginSuccess: (token: string, email: string, userId: string) => void;
 }
 
-
+/**
+ * Login component that handles user authentication.
+ * And delegates successful login handling to the parent component.
+ * @param onLoginSuccess - Callback function to be called on successful login
+ * @constructor
+ */
 export default function Login({onLoginSuccess}: LoginProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,20 +33,17 @@ export default function Login({onLoginSuccess}: LoginProps) {
         password,
       });
 
-      // On successful login, store the token and update the app state
-      const accessToken = response.data.access;
-      localStorage.setItem('authToken', accessToken);
-
-      // Extract user ID from token and store in localStorage
       try {
+        // Extract user ID from token
+        const accessToken = response.data.access;
         const decodedToken: DecodedToken = jwtDecode(accessToken);
-        localStorage.setItem("userId", String(decodedToken.user_id));
+
+        // On successful login, store credentials and update the app state
+        onLoginSuccess(accessToken, email, String(decodedToken.user_id));
+        toast.success("Login successful");
       } catch (error) {
         console.error("Failed to decode token on login", error);
       }
-
-      onLoginSuccess(accessToken, email);
-      toast.success("Login successful");
     } catch (err) {
       setError('Login failed. Please check your credentials.');
       console.error('Login error:', err);
@@ -56,8 +58,8 @@ export default function Login({onLoginSuccess}: LoginProps) {
           flexDirection: 'column',
           alignItems: 'center'
         }}>
-          <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-            <LockOutlinedIcon />
+          <Avatar sx={{m: 1, bgcolor: 'secondary.main'}}>
+            <LockOutlinedIcon/>
           </Avatar>
           <Typography component="h1" variant="h5">
             Sign in

@@ -9,7 +9,8 @@ import {
   Divider,
   List,
   ListItem,
-  ListItemText, Stack,
+  ListItemText,
+  Stack,
   TextField,
   Tooltip,
   Typography
@@ -27,12 +28,18 @@ interface FeedbackItem {
   created_at: string;
 }
 
-// Interface for the component's props
 interface FeedbackProps {
   profileId: number;
   token: string;
 }
 
+/**
+ * Feedback component for displaying and submitting feedback for a specific profile.
+ * Can use AI to polish feedback before submission. Feedbacks are shown as a vertical list.
+ * @param profileId Id of the profile being shown. It is used to fetch and submit feedback.
+ * @param token Authentication token required for API requests.
+ * @constructor
+ */
 export default function Feedback({profileId, token}: FeedbackProps) {
   const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([]);
   const [newFeedback, setNewFeedback] = useState('');
@@ -47,7 +54,7 @@ export default function Feedback({profileId, token}: FeedbackProps) {
     }
   }, [profileId, token]);
 
-  //  Fetch feedback from the backend, update the state, handle error and load
+  /**  Fetch feedback from the backend, update the state, handle error and load */
   async function fetchFeedback() {
     if (!profileId) {
       setFeedbackList([]);
@@ -69,7 +76,10 @@ export default function Feedback({profileId, token}: FeedbackProps) {
     }
   }
 
-  // Handler for polishing feedback using AI
+  /** Handler for requesting AI polish of the new feedback
+   * Sends the current newFeedback to the backend polish endpoint
+   * and updates the text area with AI-generate version.
+   */
   async function handlePolishClick() {
     if (!newFeedback.trim()) {
       toast.info("Please write some feedback before polishing.");
@@ -89,7 +99,7 @@ export default function Feedback({profileId, token}: FeedbackProps) {
     }
   }
 
-  // Handler for submitting new feedback
+  /**  Handler for submitting new feedback */
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (!newFeedback.trim()) return; // Prevent submitting empty feedback
@@ -113,9 +123,9 @@ export default function Feedback({profileId, token}: FeedbackProps) {
   return (
       <Card sx={{display: 'flex', flexDirection: 'column', height: '100%'}}>
         <CardContent>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-            <ChatBubbleOutlineIcon color="action" />
-            <Typography variant="h5" sx={{ pt: 0.8 }}>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{mb: 2}}>
+            <ChatBubbleOutlineIcon color="action"/>
+            <Typography variant="h5" sx={{pt: 0.8}}>
               Feedback
             </Typography>
           </Stack>
@@ -184,7 +194,7 @@ export default function Feedback({profileId, token}: FeedbackProps) {
                         </ListItem>
                     ))
                 ) : (
-                    <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <Box sx={{textAlign: 'center', py: 4}}>
                       <Typography variant="body2" color="text.secondary">
                         No feedback has been submitted for this profile yet.
                       </Typography>

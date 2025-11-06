@@ -16,7 +16,8 @@ import Absence from "./Absence.tsx";
 import {isManager, isManagerOrOwner} from "../utils/access.ts";
 import {toast} from "sonner";
 import apiClient from "../utils/apiClient.ts";
-import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
+import AccountCircleOutlinedIcon
+  from '@mui/icons-material/AccountCircleOutlined';
 
 interface ProfileProps {
   token: string;
@@ -29,6 +30,16 @@ interface ProfileData {
 // --- Fields that are NEVER editable ---
 const alwaysDisabledFields = ['id', 'user'];
 
+
+/**
+ * The main component for displaying and editing an employee's profile.
+ * It manages its own state for loading, viewing, and editing profile data.
+ * It also acts as a container for the Feedback and Absence components.
+ *
+ * 'profile' holds the original, source-of-truth data from the backend.
+ * 'editableProfile' is a temporary copy used only when in edit mode.
+ * This prevents UI updates until the user explicitly saves.
+ */
 export default function Profile({token}: ProfileProps) {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [editableProfile, setEditableProfile] = useState<ProfileData | null>(null);
@@ -56,18 +67,19 @@ export default function Profile({token}: ProfileProps) {
   }, [token]);
 
 
+  /** Enter edit mode and create a safe, deep copy of the profile to modify. */
   function handleEditClick() {
-    // Create a deep copy of the profile to edit, preserving the original
     setEditableProfile(JSON.parse(JSON.stringify(profile)));
     setIsEditing(true);
   }
 
+  /** Exit edit mode and discard any changes made to the editable profile. */
   function handleCancelClick() {
     setIsEditing(false);
     setEditableProfile(null); // Discard changes
   }
 
-  // Submit the edited profile data to the backend, if it fails revert to original
+  /** Submit the edited profile data to the backend, if it fails revert to original */
   async function handleSubmitClick() {
     if (!editableProfile || !profile) return;
     try {
@@ -86,7 +98,7 @@ export default function Profile({token}: ProfileProps) {
     }
   }
 
-  // Handle changes in the input fields, updating the editable profile state
+  /** Handle changes in the input fields, updating the editable profile state */
   function handleInputChange(e: ChangeEvent<HTMLInputElement>) {
     const {name, value} = e.target;
     setEditableProfile(prev => prev ? {...prev, [name]: value} : null);
@@ -108,7 +120,7 @@ export default function Profile({token}: ProfileProps) {
               transition: "opacity 0.3s ease",
             }}
         >
-          <CircularProgress size={64} thickness={5} />
+          <CircularProgress size={64} thickness={5}/>
         </Box>
     );
   }
@@ -117,8 +129,9 @@ export default function Profile({token}: ProfileProps) {
     return <Alert severity="error">{error}</Alert>;
   }
 
-
+  /** Render the Edit/Submit/Cancel buttons based on the current mode and access rights */
   function renderEditActions() {
+    // Only users with permission should see any edit-related buttons.
     if (profile && userId && isManagerOrOwner(profile!, userId!)) {
       return (isEditing ? (
           <Stack direction="row" spacing={1}>
@@ -134,6 +147,10 @@ export default function Profile({token}: ProfileProps) {
     return <></>;
   }
 
+  /**
+   * Dynamically renders profile fields as either read-only text or editable text fields.
+   * This ensures co-workers who don't receive sensitive data won't see empty fields.
+   */
   function renderProfileFields() {
     const sourceData = isEditing ? editableProfile : profile;
     if (!sourceData) return <></>;
@@ -168,8 +185,8 @@ export default function Profile({token}: ProfileProps) {
                     <Stack direction="row" justifyContent="space-between"
                            alignItems="center">
                       <Stack direction="row" spacing={1} alignItems="center">
-                        <AccountCircleOutlinedIcon color="action" />
-                        <Typography variant="h5" sx={{pt:0.8}}>
+                        <AccountCircleOutlinedIcon color="action"/>
+                        <Typography variant="h5" sx={{pt: 0.8}}>
                           Details
                         </Typography>
                       </Stack>

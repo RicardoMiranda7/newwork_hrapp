@@ -17,6 +17,7 @@ import {
 import apiClient from "../utils/apiClient.ts";
 import CalendarMonthOutlinedIcon
   from '@mui/icons-material/CalendarMonthOutlined';
+import {toast} from "sonner";
 
 interface AbsenceItem {
   id: number;
@@ -26,7 +27,6 @@ interface AbsenceItem {
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
 }
 
-// Interface for the component's props
 interface AbsenceProps {
   token: string;
   hasAccess: boolean;
@@ -39,7 +39,27 @@ const statusCycle = {
   'REJECTED': 'PENDING',
 };
 
+/** Helper to determine the color of the status chip */
+function getStatusChipColor(status: AbsenceItem["status"]) {
+  switch (status) {
+    case "APPROVED":
+      return "success";
+    case "REJECTED":
+      return "error";
+    default:
+      return "warning";
+  }
+}
 
+/**
+ * Absence component for managing and displaying employee absences.
+ * Users can submit new absence requests, and view their absence history.
+ * Managers can update the status of absence requests.
+ * @param token Authentication token required for API requests.
+ * @param hasAccess Flag indicating if the user has access to submit absence requests.
+ * @param isManager Flag indicating if the user has managerial privileges.
+ * @constructor
+ */
 export default function Absence({token, hasAccess, isManager}: AbsenceProps) {
   const [absenceList, setAbsenceList] = useState<AbsenceItem[]>([]);
   const [startDate, setStartDate] = useState("");
@@ -55,7 +75,7 @@ export default function Absence({token, hasAccess, isManager}: AbsenceProps) {
   }, [token]);
 
 
-  // Fetch the user's absences, set state, handle errors and loading
+  /**  Fetch absences from the backend, update the state, handle error and load */
   async function fetchAbsences() {
     try {
       const response = await apiClient.get("/api/v1/absences/");
@@ -68,6 +88,7 @@ export default function Absence({token, hasAccess, isManager}: AbsenceProps) {
     }
   }
 
+  /** Handler for updating the status of an absence request */
   async function handleStatusUpdate(absenceId: number, currentStatus: AbsenceItem['status']) {
     const nextStatus = statusCycle[currentStatus];
     try {
@@ -78,7 +99,7 @@ export default function Absence({token, hasAccess, isManager}: AbsenceProps) {
     }
   }
 
-  // Handler for submitting a new absence request
+  /** Handler for submitting a new absence request */
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setSubmitError(""); // Clear previous errors
@@ -93,21 +114,10 @@ export default function Absence({token, hasAccess, isManager}: AbsenceProps) {
       setEndDate("");
       setReason("");
       fetchAbsences();
+      toast.success("Absence request submitted successfully.");
     } catch (err) {
       setSubmitError("Failed to submit request. Please check the dates and reason.");
       console.error("Submit absence error:", err);
-    }
-  }
-
-  // Helper to determine the color of the status chip
-  function getStatusChipColor(status: AbsenceItem["status"]) {
-    switch (status) {
-      case "APPROVED":
-        return "success";
-      case "REJECTED":
-        return "error";
-      default:
-        return "warning";
     }
   }
 
@@ -157,7 +167,7 @@ export default function Absence({token, hasAccess, isManager}: AbsenceProps) {
                 {submitError &&
                     <Alert severity="error" sx={{mt: 2}}>{submitError}</Alert>}
 
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                <Box sx={{display: 'flex', justifyContent: 'flex-end', mt: 2}}>
                   <Button type="submit" variant="contained">
                     Request Absence
                   </Button>

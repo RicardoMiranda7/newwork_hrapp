@@ -2,6 +2,7 @@ import {Card as MuiCard, Fade, Slide, Stack} from "@mui/material";
 import {styled} from "@mui/material/styles";
 import type {ReactNode} from "react";
 
+// Overlay used to ensure the login card is always centered on a clean backdrop.
 const Overlay = styled("div")({
   position: "fixed",
   inset: 0,
@@ -15,6 +16,7 @@ const Overlay = styled("div")({
   background: 'linear-gradient(135deg, #f6f9ff 0%, #eef2fb 100%)',
 });
 
+// Styled Card with consistent padding, width, and shadow for all auth forms.
 const Card = styled(MuiCard)(({theme}) => ({
   display: "flex",
   flexDirection: "column",
@@ -37,6 +39,12 @@ interface LogInContainerProps {
   children?: ReactNode;
 }
 
+/**
+ * A presentational container for authentication screens (e.g., Login, Sign Up).
+ * It provides a consistent, centered layout with optional animations.
+ * @param animation - The type of entry animation ('slide' or 'fade').
+ * @param children - The content to be displayed inside the container.
+ */
 export default function LogInContainer({
                                          animation = "fade",
                                          children,
