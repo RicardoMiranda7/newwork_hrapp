@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from .models import User, Profile, Feedback, AbsenceRequest
 
+# Classes for standard serializers to receive and send data
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,6 +29,7 @@ class ProfileCoWorkerSerializer(serializers.ModelSerializer):
 
 
 class FeedbackSerializer(serializers.ModelSerializer):
+    # Use StringRelatedField to show the author's email/username instead of just their ID.
     # Set author to be read-only as it is set automatically in the view.
     author = serializers.StringRelatedField(read_only=True)
 

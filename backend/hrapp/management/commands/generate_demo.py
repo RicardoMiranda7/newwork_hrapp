@@ -1,13 +1,25 @@
-from django.core.management.base import BaseCommand
-from django.contrib.auth import get_user_model
-from hrapp.models import Profile
 from datetime import datetime, date
 
+from django.contrib.auth import get_user_model
+from django.core.management.base import BaseCommand
+
+from hrapp.models import Profile
+
+
 class Command(BaseCommand):
+    """
+    Custom Django management command.
+    It can be run with `python manage.py generate_demo`.
+    Its purpose is to populate the database with a consistent set of demo users
+    and profiles for easy testing and development.
+    """
     help = 'Generates demo data for the application'
 
     def handle(self, *args, **kwargs):
         User = get_user_model()
+
+        # Using get_or_create makes this script safe
+        # to run multiple times without creating duplicate data.
 
         # 1. Create manager user
         manager, created = User.objects.get_or_create(
@@ -81,4 +93,5 @@ class Command(BaseCommand):
             }
         )
 
-        self.stdout.write(self.style.SUCCESS('Demo data generated successfully!'))
+        self.stdout.write(
+            self.style.SUCCESS('Demo data generated successfully!'))

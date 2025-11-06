@@ -8,16 +8,20 @@ from django.db import models
 class User(AbstractUser):
     email = models.EmailField(unique=True)
 
-    # Use email as the unique identifier for authentication
+    # Tell Django to use the 'email' field for authentication instead of
+    # 'username'.
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
 
 
+# The central model representing an employee's profile.
+# It has a one-to-one relationship with the User model.
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,
                                 related_name="profile")
     full_name = models.CharField(max_length=255)
     job_title = models.CharField(max_length=100)
+
     # Sensitive data field
     salary = models.DecimalField(max_digits=10, decimal_places=2, null=True,
                                  blank=True)
@@ -25,11 +29,14 @@ class Profile(models.Model):
     date_of_birth = models.DateField(null=True, blank=True)
     address = models.TextField(blank=True)
     phone_number = models.CharField(max_length=20, blank=True)
+
     # Non-sensitive data
     bio = models.TextField(blank=True)
     joined_at = models.DateTimeField(default=datetime(1970, 1, 1, 0, 0))
     department = models.CharField(max_length=100, blank=True)
-    # Link the profile to a manager (another User)
+
+    # Link the profile to a manager (another User), defines the reporting
+    # structure.
     manager = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,
                                 blank=True, related_name="team_members")
 
@@ -37,6 +44,7 @@ class Profile(models.Model):
         return self.full_name
 
 
+# Stores feedback given by one user (author) to another (profile).
 class Feedback(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
                                 related_name="feedback")
@@ -47,6 +55,7 @@ class Feedback(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+# Represents an employee's request for time off.
 class AbsenceRequest(models.Model):
     class Status(models.TextChoices):
         PENDING = "PENDING", "Pending"
