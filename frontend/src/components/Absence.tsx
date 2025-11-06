@@ -42,7 +42,7 @@ export default function Absence({token, hasAccess, isManager}: AbsenceProps) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [submitError, setSubmitError] = useState("");
 
@@ -61,7 +61,7 @@ export default function Absence({token, hasAccess, isManager}: AbsenceProps) {
       setError("Could not load absence history.");
       console.error("Fetch absences error:", err);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   }
 
@@ -162,7 +162,7 @@ export default function Absence({token, hasAccess, isManager}: AbsenceProps) {
 
           {/* List of past absences */}
           <Typography variant="h6" sx={{mb: 2}}>Your Absences</Typography>
-          {loading ? (
+          {isLoading ? (
               <CircularProgress/>
           ) : error ? (
               <Alert severity="error">{error}</Alert>

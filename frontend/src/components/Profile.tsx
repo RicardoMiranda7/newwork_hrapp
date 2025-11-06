@@ -32,7 +32,7 @@ export default function Profile({token}: ProfileProps) {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [editableProfile, setEditableProfile] = useState<ProfileData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const userId = localStorage.getItem("userId");
 
@@ -45,7 +45,7 @@ export default function Profile({token}: ProfileProps) {
         setError('Failed to fetch profile data.');
         console.error('Fetch profile error:', err);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -91,7 +91,7 @@ export default function Profile({token}: ProfileProps) {
     setEditableProfile(prev => prev ? {...prev, [name]: value} : null);
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
         <Box
             sx={{
