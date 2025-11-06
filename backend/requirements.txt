@@ -7,3 +7,4 @@ django_filter
 django-jazzmin
 python-dotenv
 requests
+drf-spectacular

@@ -1,6 +1,7 @@
 import requests
 from django.conf import settings
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework import status
 from rest_framework import viewsets, permissions, mixins
 from rest_framework.permissions import IsAuthenticated
@@ -18,6 +19,14 @@ from .serializers import (
 )
 
 
+@extend_schema_view(
+    list=extend_schema(tags=["Profiles"]),
+    retrieve=extend_schema(tags=["Profiles"]),
+    create=extend_schema(tags=["Profiles"]),
+    update=extend_schema(tags=["Profiles"]),
+    partial_update=extend_schema(tags=["Profiles"]),
+    destroy=extend_schema(tags=["Profiles"]),
+)
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all().filter()
     permission_classes = [permissions.IsAuthenticated,
@@ -41,6 +50,10 @@ class ProfileViewSet(viewsets.ModelViewSet):
         return ProfileSerializer
 
 
+@extend_schema_view(
+    list=extend_schema(tags=["Feedback"]),
+    create=extend_schema(tags=["Feedback"]),
+)
 class FeedbackViewSet(mixins.ListModelMixin,
                       mixins.CreateModelMixin,
                       viewsets.GenericViewSet):
@@ -55,6 +68,7 @@ class FeedbackViewSet(mixins.ListModelMixin,
         serializer.save(author=self.request.user)
 
 
+@extend_schema(tags=["Feedback"])
 class PolishFeedbackView(APIView):
     """
     An endpoint that accepts text and uses a Hugging Face model to polish it.
@@ -105,6 +119,14 @@ class PolishFeedbackView(APIView):
                             status=503)
 
 
+@extend_schema_view(
+    list=extend_schema(tags=["Absences"]),
+    retrieve=extend_schema(tags=["Absences"]),
+    create=extend_schema(tags=["Absences"]),
+    update=extend_schema(tags=["Absences"]),
+    partial_update=extend_schema(tags=["Absences"]),
+    destroy=extend_schema(tags=["Absences"]),
+)
 class AbsenceRequestViewSet(viewsets.ModelViewSet):
     queryset = AbsenceRequest.objects.all().order_by('-start_date')
     serializer_class = AbsenceRequestSerializer
@@ -122,6 +144,7 @@ class AbsenceRequestViewSet(viewsets.ModelViewSet):
         serializer.save(employee=self.request.user)
 
 
+@extend_schema(tags=["Authentication"])
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 

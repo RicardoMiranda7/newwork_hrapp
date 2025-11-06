@@ -16,15 +16,32 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from drf_spectacular.utils import extend_schema_view, extend_schema
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
-    TokenRefreshView, TokenBlacklistView,
-)
+    TokenRefreshView, TokenBlacklistView, )
+
+# Customize the TokenObtainPairView to add schema tags
+token_obtain_pair_view = extend_schema_view(
+    post=extend_schema(tags=["Authentication"])
+)(TokenObtainPairView.as_view())
+
+token_refresh_view = extend_schema_view(
+    post=extend_schema(tags=["Authentication"])
+)(TokenRefreshView.as_view())
+
+token_blacklist_view = extend_schema_view(
+    post=extend_schema(tags=["Authentication"])
+)(TokenBlacklistView.as_view())
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/v1/token/logout/', TokenBlacklistView.as_view(), name='token_logout'),
+    path('api/v1/token/', token_obtain_pair_view, name='token_obtain_pair'),
+    path('api/v1/token/refresh/', token_refresh_view, name='token_refresh'),
+    path('api/v1/token/logout/', token_blacklist_view, name='token_logout'),
     path('api/v1/', include('hrapp.urls')),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/schema/swagger-ui/',
+         SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]

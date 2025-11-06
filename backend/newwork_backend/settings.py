@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     # 3rd Party Apps
     "rest_framework",
     "rest_framework_simplejwt",
+    "drf_spectacular",
     "corsheaders",
     "django_filters",
 
@@ -56,7 +57,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    'corsheaders.middleware.CorsMiddleware', # Should be placed high
+    "corsheaders.middleware.CorsMiddleware", # Should be placed above CommonMiddleware and CsrfViewMiddleware
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -96,9 +97,10 @@ AUTH_USER_MODEL = 'hrapp.User'
 
 # Configure Django REST Framework to use JWT for authentication
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
@@ -171,7 +173,37 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Retrieve api key from environment variables (local from .env and docker from .yml)
-HUGGING_FACE_API_KEY = os.environ.get('HUGGING_FACE_API_KEY')
+HUGGING_FACE_API_KEY = os.environ.get("HUGGING_FACE_API_KEY")
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "NEWWORK HR API",
+    "DESCRIPTION": "API documentation for the NEWWORK HR application. This allows for easy testing of all backend endpoints.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "TAGS": [
+            {
+                "name": "Authentication",
+                "description": "Endpoints for user authentication and token management."
+            },
+            {
+                "name": "Profiles",
+                "description": "Operations related to employee profiles."
+            },
+            {
+                "name": "Feedback",
+                "description": "Endpoints for submitting and polishing feedback."
+            },
+            {
+                "name": "Absences",
+                "description": "Endpoints for managing absence requests."
+            },
+        ],
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "persistAuthorization": True,
+        "displayOperationId": True,
+    },
+}
 
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)
