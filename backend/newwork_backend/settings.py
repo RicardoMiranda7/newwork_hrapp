@@ -170,6 +170,9 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Retrieve api key from environment variables (local from .env and docker from .yml)
+HUGGING_FACE_API_KEY = os.environ.get('HUGGING_FACE_API_KEY')
+
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)
     "site_title": "NewWork Admin",

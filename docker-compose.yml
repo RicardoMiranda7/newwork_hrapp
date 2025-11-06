@@ -27,6 +27,7 @@ services:
       - DJANGO_SUPERUSER_USERNAME=admin
       - DJANGO_SUPERUSER_EMAIL=admin@example.com
       - DJANGO_SUPERUSER_PASSWORD=password
+      - HUGGING_FACE_API_KEY=hugging_face_api_key
 
 volumes:
   postgres_data:

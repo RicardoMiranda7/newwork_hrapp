@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ProfileViewSet, FeedbackViewSet, AbsenceRequestViewSet
+from .views import ProfileViewSet, FeedbackViewSet, AbsenceRequestViewSet, \
+    LogoutView, PolishFeedbackView
 
 router = DefaultRouter()
 router.register(r'profiles', ProfileViewSet)
@@ -9,4 +10,7 @@ router.register(r'absences', AbsenceRequestViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('feedback/polish/', PolishFeedbackView.as_view(), name='polish-feedback'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+
 ]

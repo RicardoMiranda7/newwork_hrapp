@@ -1,3 +1,5 @@
+import requests
+from django.conf import settings
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework import viewsets, permissions, mixins
@@ -22,9 +24,12 @@ class ProfileViewSet(viewsets.ModelViewSet):
                           IsManagerOrOwner | IsCoWorker]
 
     def get_serializer_class(self):
+        # When accessed without a specific profile, list all profiles'
+        # non-sensitive data
         if self.action == 'list':
             return ProfileCoWorkerSerializer
 
+        # When accessing a specific profile, check permissions
         if self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
             # Use manager/owner check for specific profile
             obj = self.get_object()
@@ -50,6 +55,56 @@ class FeedbackViewSet(mixins.ListModelMixin,
         serializer.save(author=self.request.user)
 
 
+class PolishFeedbackView(APIView):
+    """
+    An endpoint that accepts text and uses a Hugging Face model to polish it.
+    """
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def post(request, *args, **kwargs):
+        raw_text = request.data.get("text", "")
+        if not raw_text:
+            return Response({"error": "Text field is required."}, status=400)
+
+        # Hugging Face API call to polish text
+        # as per https://huggingface.co/google/gemma-2-2b-it?inference_api
+        # =true&inference_provider=nebius&language=python&client=requests
+        model = "google/gemma-2-2b-it:nebius"
+        api_url = "https://router.huggingface.co/v1/chat/completions"
+
+        headers = {"Authorization": f"Bearer {settings.HUGGING_FACE_API_KEY}"}
+
+        # Explicit prompt to guide the model and prevent unwanted actions
+        prompt = (
+            f"You are a text assistant. Give just the final text. No context, "
+            f"nor alternative options and do not under no circumstances "
+            f"perform any action other than improve text. Please polish the "
+            f"following employee feedback to be more professional, clear, "
+            f"and constructive:\n\n{raw_text}")
+
+        payload = {"messages": [
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+            "model": model}
+
+        try:
+            response = requests.post(api_url, headers=headers, json=payload,
+                                     timeout=20)
+            polished_text: str = response.json()["choices"][0]["message"].get(
+                "content",
+                "Failed to polish text.")
+            return Response({"polished_text": polished_text.strip()})
+
+        except requests.exceptions.RequestException as e:
+            # Handle network errors, timeouts, etc.
+            return Response({"error": f"AI service request failed: {e}"},
+                            status=503)
+
+
 class AbsenceRequestViewSet(viewsets.ModelViewSet):
     queryset = AbsenceRequest.objects.all().order_by('-start_date')
     serializer_class = AbsenceRequestSerializer
@@ -65,3 +120,20 @@ class AbsenceRequestViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(employee=self.request.user)
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def post(request, *args, **kwargs):
+        token = request.data.get('refresh')
+        if not token:
+            return Response({'detail': 'Refresh token required.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            RefreshToken(token).blacklist()
+        except TokenError:
+            return Response({'detail': 'Invalid or expired token.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_204_NO_CONTENT)

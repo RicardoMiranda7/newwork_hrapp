@@ -6,3 +6,4 @@ django-cors-headers
 django_filter
 django-jazzmin
 python-dotenv
+requests
