@@ -1,9 +1,13 @@
+from datetime import date
+
 import requests
 from django.conf import settings
+from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework import status
 from rest_framework import viewsets, permissions, mixins
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,6 +21,7 @@ from .serializers import (
     FeedbackSerializer,
     AbsenceRequestSerializer,
 )
+from .services import absence_service
 
 
 @extend_schema_view(
@@ -48,6 +53,31 @@ class ProfileViewSet(viewsets.ModelViewSet):
             return ProfileCoWorkerSerializer
 
         return ProfileSerializer
+
+    @action(detail=True, methods=['get'], url_path='vacation-balance')
+    def vacation_balance(self, request, pk=None):
+        """
+        A custom endpoint to retrieve the calculated vacation day balance for a profile.
+        Accepts an optional 'year' query parameter.
+        """
+        profile = self.get_object()
+
+        # Get the year from a query parameter, defaulting to the current year.
+        try:
+            year = int(request.query_params.get('year', date.today().year))
+        except (ValueError, TypeError):
+            year = date.today().year  # Fallback if the parameter is invalid
+
+        # Call the dedicated service to perform the calculation.
+        balance = absence_service.get_vacation_balance(profile, year)
+        balance_next_year = absence_service.get_vacation_balance(profile, year + 1)
+
+        return Response({
+            'year': year,
+            'vacation_days_allowance': absence_service.YEARLY_VACATION_ALLOWANCE,
+            'vacation_days_balance': balance,
+            'vacation_days_balance_next_year': balance_next_year
+        })
 
 
 @extend_schema_view(
@@ -140,8 +170,29 @@ class AbsenceRequestViewSet(viewsets.ModelViewSet):
             return AbsenceRequest.objects.filter(employee=user)
         return super().get_queryset()
 
-    def perform_create(self, serializer):
-        serializer.save(employee=self.request.user)
+    # Override create to perform custom validation and debit
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Use an atomic transaction to ensure that the absence request and its
+        # ledger entry are either both created successfully, or neither are.
+        with transaction.atomic():
+            # First, save the absence request to have an ID.
+            absence_request = serializer.save(employee=self.request.user)
+
+            # Now, run the validation and create the initial debit.
+            # This will roll back if validation fails.
+            absence_service.validate_and_debit_absence_request(
+                profile=self.request.user.profile,
+                start_date=absence_request.start_date,
+                end_date=absence_request.end_date,
+                request=absence_request
+            )
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED,
+                        headers=headers)
 
 
 @extend_schema(tags=["Authentication"])

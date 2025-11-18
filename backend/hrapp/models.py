@@ -69,3 +69,44 @@ class AbsenceRequest(models.Model):
     reason = models.TextField()
     status = models.CharField(max_length=20, choices=Status.choices,
                               default=Status.PENDING)
+
+# Stores official bank holidays to be excluded from vacation calculations
+class BankHoliday(models.Model):
+    name = models.CharField(max_length=100)
+    date = models.DateField(unique=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.date})"
+
+    class Meta:
+        ordering = ['date']
+
+
+class AbsenceLedger(models.Model):
+    """
+    An immutable ledger for tracking vacation day transactions.
+    - Positive amounts are credits (e.g., yearly allowance, rejected requests).
+    - Negative amounts are debits (e.g., new or approved requests).
+    """
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
+                                related_name="ledger_entries")
+    # A nullable ForeignKey allows for transactions not tied to a specific
+    # request (e.g., initial allowance).
+    absence_request = models.ForeignKey(AbsenceRequest,
+                                        on_delete=models.SET_NULL, null=True,
+                                        blank=True)
+
+    amount = models.IntegerField()  # The number of days for this transaction
+    # (+ or -)
+    year = models.IntegerField()  # The year this transaction applies to
+
+    # A short description for clarity in the admin panel.
+    description = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return (f"{self.profile.full_name} | {self.amount} days in {self.year} "
+                f"({self.description})")
+
+    class Meta:
+        ordering = ['-created_at']
