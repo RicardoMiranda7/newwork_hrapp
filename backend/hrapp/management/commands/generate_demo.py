@@ -1,9 +1,10 @@
 from datetime import datetime, date
 
+import holidays
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
-from hrapp.models import Profile
+from hrapp.models import Profile, BankHoliday
 
 
 class Command(BaseCommand):
@@ -94,4 +95,27 @@ class Command(BaseCommand):
         )
 
         self.stdout.write(
-            self.style.SUCCESS('Demo data generated successfully!'))
+            self.style.SUCCESS('User and profile data generated successfully!'))
+
+        self.stdout.write(
+            "Generating bank holidays for Portugal (2025-2026)...")
+
+        years_to_populate = [2025, 2026]
+
+        # Take advantage of the `holidays` library to get official bank holidays
+        # instead of hardcoding them.
+        pt_holidays = holidays.PT(years=years_to_populate)
+
+        holidays_created_count = 0
+        for holiday_date, holiday_name in pt_holidays.items():
+            # Use get_or_create to prevent creating duplicate holidays
+            holiday, created = BankHoliday.objects.get_or_create(
+                date=holiday_date,
+                defaults={'name': holiday_name}
+            )
+            if created:
+                holidays_created_count += 1
+
+        self.stdout.write(self.style.SUCCESS(
+            f'{holidays_created_count} new bank holidays created.'))
+        self.stdout.write(self.style.SUCCESS('Demo data generation complete!'))
