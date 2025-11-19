@@ -12,6 +12,11 @@ class IsManagerOrOwner(BasePermission):
         # The logic for determining ownership depends on the type of object being accessed.
         # Write permissions are only granted to the manager or the owner.
         if isinstance(obj, AbsenceRequest):
+            if (request.method == "PATCH" and obj.employee == request.user
+                    and obj.status != AbsenceRequest.Status.PENDING
+                    and request.data.get("status") != AbsenceRequest.Status.REJECTED):
+                # Employees can only reject (or cancel) their absence requests when they are still pending.
+                return False
             # An absence can be seen/edited by the employee who requested it or their manager.
             return obj.employee == request.user or obj.employee.profile.manager == request.user
         elif isinstance(obj, Feedback):
