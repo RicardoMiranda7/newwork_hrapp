@@ -88,7 +88,8 @@ def calculate_business_days(start_date: date, end_date: date,
 def validate_and_debit_absence_request(profile: Profile, start_date: date,
                                        end_date: date, request: AbsenceRequest):
     """
-    Validates an absence request against the employee's vacation balance.
+    Validates an absence request against the employee's vacation balance and
+    other vacation periods
 
     Args:
         profile: The employee's profile.
@@ -100,13 +101,36 @@ def validate_and_debit_absence_request(profile: Profile, start_date: date,
         None. If validation passes, a debit transaction is recorded.
 
     Raises:
-        ValidationError: If there are insufficient vacation days.
+        ValidationError: If there are insufficient vacation days or if there are
+        overlapping absence requests.
     """
 
+    # Consider only the year of the start date for checks.
     year = start_date.year
-    current_balance = get_vacation_balance(profile, year)
 
+    # Fetch current vacation balance and return if zero or negative.
+    current_balance = get_vacation_balance(profile, year)
+    if current_balance <= 0:
+        raise ValidationError(
+            "You have no remaining vacation days for this year.")
+
+    # Check for intersecting absence requests (exclude itself).
+    # Return if any exist.
+    intersection = AbsenceRequest.objects.filter(
+        employee=profile.user,
+        status__in=[AbsenceRequest.Status.PENDING,
+                    AbsenceRequest.Status.APPROVED],
+        start_date__lte=end_date,
+        end_date__gte=start_date
+    ).exclude(id=request.id)
+    if intersection.exists():
+        raise ValidationError(
+            "The requested absence period overlaps with an existing "
+            "absence request.")
+
+    # Fetch bank holidays for the year.
     holidays = get_bank_holidays_for_year(year)
+    # Calculate the number of business days in the requested period.
     requested_days = calculate_business_days(start_date, end_date, holidays)
 
     if requested_days <= 0:
