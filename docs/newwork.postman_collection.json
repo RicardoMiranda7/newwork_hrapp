@@ -145,7 +145,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"start_date\": \"2025-12-20\",\n    \"end_date\": \"2025-12-28\",\n    \"reason\": \"Family vacation for the holidays.\"\n}",
+					"raw": "{\n    \"start_date\": \"2025-12-28\",\n    \"end_date\": \"2026-01-15\",\n    \"reason\": \"Family vacation for the holidays.\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -161,6 +161,46 @@
 						"api",
 						"v1",
 						"absences",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Absence Status",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": 9,\n    \"employee\": \"john.smith@example.com\",\n    \"start_date\": \"2025-12-28\",\n    \"end_date\": \"2026-01-15\",\n    \"reason\": \"Family vacation for the holidays.\",\n    \"status\": \"REJECTED\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/absences/update-status/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"absences",
+						"update-status",
 						""
 					]
 				}
@@ -283,6 +323,49 @@
 			"response": []
 		},
 		{
+			"name": "Vacation Balance Profile",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/profiles/1/vacation-balance",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"profiles",
+						"1",
+						"vacation-balance"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Profile ID",
 			"request": {
 				"auth": {
@@ -290,7 +373,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYyMjU5OTE1LCJpYXQiOjE3NjIyNTk2MTUsImp0aSI6ImRkNDYxZWRjODU0ZDQxODNhOTRiNjEwZDFiZmMwMjBjIiwidXNlcl9pZCI6IjMifQ._YepX7Ii2Z2Fx32Sxgd900fDN6FAMvEPexfZrwHPx7E",
+							"value": "{{access_token}}",
 							"type": "string"
 						}
 					]
@@ -298,12 +381,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8000/api/v1/profiles/1",
-					"protocol": "http",
+					"raw": "{{base_url}}/api/v1/profiles/1",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"api",
 						"v1",
@@ -362,7 +443,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "API_KEY_HERE",
+							"value": "",
 							"type": "string"
 						}
 					]
@@ -477,8 +558,7 @@
 		},
 		{
 			"key": "access_token",
-			"value": "",
-			"type": "default"
+			"value": ""
 		}
 	]
 }
