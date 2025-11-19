@@ -8,3 +8,5 @@ django-jazzmin
 python-dotenv
 requests
 drf-spectacular
+numpy
+holidays
