@@ -96,3 +96,34 @@ def record_transaction(profile: Profile, year: int, amount: int,
         description=description,
         absence_request=request
     )
+
+
+def handle_absence_status_change(request: AbsenceRequest, new_status: str):
+    if (new_status == AbsenceRequest.Status.REJECTED and request.status !=
+            AbsenceRequest.Status.REJECTED):
+        # Find the original debit transaction and refund it.
+        original_debit = request.ledger_entries.filter(amount__lt=0).first()
+        if original_debit:
+            record_transaction(
+                profile=request.employee.profile,
+                year=original_debit.year,
+                amount=-original_debit.amount,
+                # Credit back the positive amount
+                description=f"Absence request rejected",
+                request=request
+            )
+    # If a rejected request is moved back to PENDING or APPROVED, we need to
+    # re-debit.
+    elif (request.status == AbsenceRequest.Status.REJECTED and new_status !=
+          AbsenceRequest.Status.APPROVED):
+        # Find the original credit transaction and re-debit it.
+        original_credit = request.ledger_entries.filter(amount__gt=0).first()
+        record_transaction(
+            profile=request.employee.profile,
+            year=original_credit.year,
+            amount=-original_credit.amount,
+            description=f"Absence request re-opened ({new_status})",
+            request=request
+        )
+    request.status = new_status
+    request.save()

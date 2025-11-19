@@ -93,7 +93,9 @@ class AbsenceLedger(models.Model):
     # A nullable ForeignKey allows for transactions not tied to a specific
     # request (e.g., initial allowance).
     absence_request = models.ForeignKey(AbsenceRequest,
-                                        on_delete=models.SET_NULL, null=True,
+                                        on_delete=models.SET_NULL,
+                                        related_name="ledger_entries",
+                                        null=True,
                                         blank=True)
 
     amount = models.IntegerField()  # The number of days for this transaction

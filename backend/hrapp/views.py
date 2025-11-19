@@ -57,7 +57,8 @@ class ProfileViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'], url_path='vacation-balance')
     def vacation_balance(self, request, pk=None):
         """
-        A custom endpoint to retrieve the calculated vacation day balance for a profile.
+        A custom endpoint to retrieve the calculated vacation day balance for
+        a profile.
         Accepts an optional 'year' query parameter.
         """
         profile = self.get_object()
@@ -70,11 +71,13 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
         # Call the dedicated service to perform the calculation.
         balance = absence_service.get_vacation_balance(profile, year)
-        balance_next_year = absence_service.get_vacation_balance(profile, year + 1)
+        balance_next_year = absence_service.get_vacation_balance(profile,
+                                                                 year + 1)
 
         return Response({
             'year': year,
-            'vacation_days_allowance': absence_service.YEARLY_VACATION_ALLOWANCE,
+            'vacation_days_allowance':
+                absence_service.YEARLY_VACATION_ALLOWANCE,
             'vacation_days_balance': balance,
             'vacation_days_balance_next_year': balance_next_year
         })
@@ -193,6 +196,32 @@ class AbsenceRequestViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED,
                         headers=headers)
+
+    @action(detail=True, methods=['patch'], url_path='update-status',
+            permission_classes=[IsManagerOrOwner])
+    def update_status(self, request, pk=None):
+        """
+        An endpoint that permits updating the status of an absence request.
+        Allows a manager to approve or reject an absence request.
+        Allows the owner to reject an absence request.
+        """
+        absence_request = self.get_object()
+        new_status = request.data.get('status')
+
+        # Validate the provided status
+        valid_statuses = [s[0] for s in AbsenceRequest.Status.choices]
+        if new_status not in valid_statuses:
+            return Response(
+                {"error": f"Invalid status. Must be one of {valid_statuses}"},
+                status=400)
+
+        with transaction.atomic():
+            absence_service.handle_absence_status_change(absence_request,
+                                                         new_status)
+
+        # Return the updated absence request
+        serializer = self.get_serializer(absence_request)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema(tags=["Authentication"])
