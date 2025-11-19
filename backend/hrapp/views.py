@@ -59,7 +59,13 @@ class ProfileViewSet(viewsets.ModelViewSet):
         """
         A custom endpoint to retrieve the calculated vacation day balance for
         a profile.
-        Accepts an optional 'year' query parameter.
+        Args:
+            request: The HTTP request.
+            pk: The primary key of the profile.
+            year (optional): The year for which to calculate the balance.
+                             Defaults to the current year if not provided.
+        Returns:
+            A Response containing the vacation day balance details.
         """
         profile = self.get_object()
 
@@ -204,6 +210,12 @@ class AbsenceRequestViewSet(viewsets.ModelViewSet):
         An endpoint that permits updating the status of an absence request.
         Allows a manager to approve or reject an absence request.
         Allows the owner to reject an absence request.
+
+        Args:
+            request: The HTTP request containing the new status.
+            pk: The primary key of the absence request to update.
+        Returns:
+            A Response with the updated absence request or an error.
         """
         absence_request = self.get_object()
         new_status = request.data.get('status')
