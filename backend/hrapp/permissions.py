@@ -13,12 +13,15 @@ class IsManagerOrOwner(BasePermission):
         # Write permissions are only granted to the manager or the owner.
         if isinstance(obj, AbsenceRequest):
             if (request.method == "PATCH" and obj.employee == request.user
-                    and obj.status != AbsenceRequest.Status.PENDING
-                    and request.data.get("status") != AbsenceRequest.Status.REJECTED):
+                    and obj.status == AbsenceRequest.Status.PENDING
+                    and request.data.get("status") == AbsenceRequest.Status.REJECTED):
                 # Employees can only reject (or cancel) their absence requests when they are still pending.
-                return False
-            # An absence can be seen/edited by the employee who requested it or their manager.
-            return obj.employee == request.user or obj.employee.profile.manager == request.user
+                return True
+            elif request.method == "PATCH" and obj.employee.profile.manager == request.user:
+                # Managers can update any absence request of their employees.
+                return True
+            # An absence can be seen by the employee who requested it or their manager.
+            return request.method == "GET" and (obj.employee == request.user or obj.employee.profile.manager == request.user)
         elif isinstance(obj, Feedback):
             # Feedback can be seen/edited by the person it's about or their manager.
             return obj.profile.user == request.user or obj.profile.manager == request.user

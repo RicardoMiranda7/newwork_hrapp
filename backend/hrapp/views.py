@@ -3,6 +3,7 @@ from datetime import date
 import requests
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework import status
@@ -155,7 +156,7 @@ class PolishFeedbackView(APIView):
         except requests.exceptions.RequestException as e:
             # Handle network errors, timeouts, etc.
             return Response({"error": f"AI service request failed: {e}"},
-                            status=503)
+                            status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
 @extend_schema_view(
@@ -177,7 +178,9 @@ class AbsenceRequestViewSet(viewsets.ModelViewSet):
                                                             obj)
                    for obj in self.queryset):
             return AbsenceRequest.objects.filter(employee=user)
-        return super().get_queryset()
+        return super().get_queryset().filter(
+            Q(status=AbsenceRequest.Status.APPROVED) |
+            (Q(employee=user) & ~Q(status=AbsenceRequest.Status.APPROVED)))
 
     # Override create to perform custom validation and debit
     def create(self, request, *args, **kwargs):
@@ -219,7 +222,14 @@ class AbsenceRequestViewSet(viewsets.ModelViewSet):
         Returns:
             A Response with the updated absence request or an error.
         """
-        absence_request = AbsenceRequest.objects.get(pk=request.data["id"])
+        try:
+            absence_request = AbsenceRequest.objects.get(pk=request.data["id"])
+        except AbsenceRequest.DoesNotExist:
+            return Response({"error": "Absence request not found."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        # Force permission check, since action is not tied to a specific object
+        self.check_object_permissions(request, absence_request)
+
         new_status = request.data.get("status")
 
         # Validate the provided status
@@ -227,7 +237,7 @@ class AbsenceRequestViewSet(viewsets.ModelViewSet):
         if new_status not in valid_statuses:
             return Response(
                 {"error": f"Invalid status. Must be one of {valid_statuses}"},
-                status=400)
+                status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
             absence_service.handle_absence_status_change(absence_request,
