@@ -203,22 +203,24 @@ class AbsenceRequestViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED,
                         headers=headers)
 
-    @action(detail=True, methods=['patch'], url_path='update-status',
+    @action(detail=False, methods=['patch'], url_path='update-status',
             permission_classes=[IsManagerOrOwner])
-    def update_status(self, request, pk=None):
+    def update_status(self, request):
         """
         An endpoint that permits updating the status of an absence request.
         Allows a manager to approve or reject an absence request.
         Allows the owner to reject an absence request.
+        Instead of using instance request (pk in URL), use the absence object
+        in the body.
 
         Args:
-            request: The HTTP request containing the new status.
-            pk: The primary key of the absence request to update.
+            request: The HTTP request containing the new status and the
+            absence request object.
         Returns:
             A Response with the updated absence request or an error.
         """
-        absence_request = self.get_object()
-        new_status = request.data.get('status')
+        absence_request = AbsenceRequest.objects.get(pk=request.data["id"])
+        new_status = request.data.get("status")
 
         # Validate the provided status
         valid_statuses = [s[0] for s in AbsenceRequest.Status.choices]

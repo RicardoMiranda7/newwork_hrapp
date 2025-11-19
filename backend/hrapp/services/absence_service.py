@@ -105,17 +105,13 @@ def validate_and_debit_absence_request(profile: Profile, start_date: date,
         overlapping absence requests.
     """
 
-    # Consider only the year of the start date for checks.
-    year = start_date.year
-
-    # Fetch current vacation balance and return if zero or negative.
-    current_balance = get_vacation_balance(profile, year)
-    if current_balance <= 0:
+    # Basic date validation.
+    if start_date > end_date:
         raise ValidationError(
-            "You have no remaining vacation days for this year.")
+            "The start date must be before or equal to the end date.")
 
     # Check for intersecting absence requests (exclude itself).
-    # Return if any exist.
+    # Raise error if any exist.
     intersection = AbsenceRequest.objects.filter(
         employee=profile.user,
         status__in=[AbsenceRequest.Status.PENDING,
@@ -128,29 +124,43 @@ def validate_and_debit_absence_request(profile: Profile, start_date: date,
             "The requested absence period overlaps with an existing "
             "absence request.")
 
-    # Fetch bank holidays for the year.
-    holidays = get_bank_holidays_for_year(year)
-    # Calculate the number of business days in the requested period.
-    requested_days = calculate_business_days(start_date, end_date, holidays)
+    # When multi-year absences are requested, split the validation and debit
+    # across the years.
+    for year in range(start_date.year, end_date.year + 1):
+        # Determine the start and end dates for this year segment.
+        segment_start_date = max(start_date, date(year, 1, 1))
+        segment_end_date = min(end_date, date(year, 12, 31))
 
-    if requested_days <= 0:
-        raise ValidationError(
-            "The selected date range contains no business days.")
+        # Fetch current vacation balance and raise error if zero or negative.
+        current_balance = get_vacation_balance(profile, year)
+        if current_balance <= 0:
+            raise ValidationError(
+                "You have no remaining vacation days for this year.")
 
-    if requested_days > current_balance:
-        raise ValidationError(
-            f"Insufficient vacation balance. You have {current_balance} days "
-            f"remaining, "
-            f"but this request is for {requested_days} business days.")
+        # Fetch bank holidays for the year.
+        holidays = get_bank_holidays_for_year(year)
+        # Calculate the number of business days in the requested period.
+        requested_days = calculate_business_days(segment_start_date,
+                                                 segment_end_date, holidays)
 
-    # If validation passes, record the debit transaction.
-    record_transaction(
-        profile=profile,
-        year=year,
-        amount=-requested_days,  # Debit is a negative amount
-        description=f"Absence request submitted ({request.start_date} to "
-                    f"{request.end_date})",
-        request=request)
+        if requested_days <= 0:
+            raise ValidationError(
+                "The selected date range contains no business days.")
+
+        if requested_days > current_balance:
+            raise ValidationError(
+                f"Insufficient vacation balance. You have {current_balance} "
+                f"days remaining, but this request is for {requested_days} "
+                f"business days.")
+
+        # If validation passes, record the debit transaction.
+        record_transaction(
+            profile=profile,
+            year=year,
+            amount=-requested_days,  # Debit is a negative amount
+            description=f"Absence request submitted ({request.start_date} to "
+                        f"{request.end_date})",
+            request=request)
 
 
 def handle_absence_status_change(request: AbsenceRequest, new_status: str):
@@ -166,32 +176,35 @@ def handle_absence_status_change(request: AbsenceRequest, new_status: str):
     Returns:
         None. The request is updated in place.
     """
-
-    if (new_status == AbsenceRequest.Status.REJECTED and request.status !=
-            AbsenceRequest.Status.REJECTED):
-        # Find the original debit transaction and refund it.
-        original_debit = request.ledger_entries.filter(amount__lt=0).first()
-        if original_debit:
+    # When multi-year absence, split the validation and update across the years
+    for year in range(request.start_date.year, request.end_date.year + 1):
+        if (new_status == AbsenceRequest.Status.REJECTED and request.status !=
+                AbsenceRequest.Status.REJECTED):
+            # Find the original debit transaction and refund it.
+            original_debit = request.ledger_entries.filter(amount__lt=0,
+                                                           year=year).first()
+            if original_debit:
+                record_transaction(
+                    profile=request.employee.profile,
+                    year=original_debit.year,
+                    amount=-original_debit.amount,
+                    # Credit back the positive amount
+                    description=f"Absence request rejected",
+                    request=request
+                )
+        # If a rejected request is moved back to PENDING or APPROVED, we need to
+        # re-debit.
+        elif (request.status == AbsenceRequest.Status.REJECTED and new_status !=
+              AbsenceRequest.Status.APPROVED):
+            # Find the original credit transaction and re-debit it.
+            original_credit = request.ledger_entries.filter(amount__gt=0,
+                                                            year=year).first()
             record_transaction(
                 profile=request.employee.profile,
-                year=original_debit.year,
-                amount=-original_debit.amount,
-                # Credit back the positive amount
-                description=f"Absence request rejected",
+                year=original_credit.year,
+                amount=-original_credit.amount,
+                description=f"Absence request re-opened ({new_status})",
                 request=request
             )
-    # If a rejected request is moved back to PENDING or APPROVED, we need to
-    # re-debit.
-    elif (request.status == AbsenceRequest.Status.REJECTED and new_status !=
-          AbsenceRequest.Status.APPROVED):
-        # Find the original credit transaction and re-debit it.
-        original_credit = request.ledger_entries.filter(amount__gt=0).first()
-        record_transaction(
-            profile=request.employee.profile,
-            year=original_credit.year,
-            amount=-original_credit.amount,
-            description=f"Absence request re-opened ({new_status})",
-            request=request
-        )
     request.status = new_status
     request.save()
